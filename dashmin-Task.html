@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم Dashmin - هاردوير اللابتوب</title>
+    
+    <!-- Google Font Cairo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0d6efd',
+                        secondary: '#f3f6f9',
+                        dark: '#191c24',
+                        light: '#ffffff',
+                        cardDark: '#0f172a',
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f3f6f9;
+        }
+        .sidebar-item-active {
+            background-color: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
+            border-right: 4px solid #0d6efd;
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="text-slate-700 font-cairo min-h-screen flex flex-col">
+
+    <!-- LOGIN PAGE VIEW -->
+    <div id="login-view" class="fixed inset-0 z-50 bg-slate-900 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 border border-slate-100 fade-in">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-50 text-primary rounded-full mb-3 text-2xl font-bold">
+                    <i class="fa-solid fa-laptop-code"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-800">داشمن هاردوير Dashmin</h2>
+                <p class="text-sm text-slate-500 mt-1">تسجيل الدخول إلى لوحة إدارة القطع والمستلزمات</p>
+            </div>
+
+            <form onsubmit="handleLogin(event)" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">البريد الإلكتروني</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
+                            <i class="fa-regular fa-envelope"></i>
+                        </span>
+                        <input type="email" required value="ahmed.nasr@dashmin.com" class="w-full pr-10 pl-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition" placeholder="ahmed.nasr@example.com">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">كلمة المرور</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
+                            <i class="fa-solid fa-lock"></i>
+                        </span>
+                        <input type="password" required value="123456" class="w-full pr-10 pl-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition" placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between text-sm">
+                    <label class="flex items-center gap-2 cursor-pointer text-slate-600">
+                        <input type="checkbox" checked class="rounded text-primary focus:ring-primary border-slate-300">
+                        تذكرني
+                    </label>
+                    <a href="#" class="text-primary hover:underline text-xs">نسيت كلمة المرور؟</a>
+                </div>
+
+                <button type="submit" class="w-full bg-primary hover:bg-blue-600 text-white font-semibold py-2.5 rounded-xl transition shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    تسجيل الدخول
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN APP LAYOUT (Sidebar + Topbar + Content) -->
+    <div id="app-view" class="hidden min-h-screen flex">
+        
+        <!-- SIDEBAR -->
+        <aside class="w-64 bg-white border-l border-slate-200 flex flex-col fixed inset-y-0 right-0 z-30 transition-all">
+            <!-- Brand -->
+            <div class="h-16 flex items-center px-6 border-b border-slate-100 gap-3">
+                <div class="w-9 h-9 bg-primary text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-md shadow-blue-500/30">
+                    <i class="fa-solid fa-microchip"></i>
+                </div>
+                <span class="text-xl font-bold text-slate-800 tracking-wide">داشمن هاردوير</span>
+            </div>
+
+            <!-- Profile Widget -->
+            <div class="p-4 border-b border-slate-100 bg-slate-50/50 m-3 rounded-xl flex items-center gap-3">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="أحمد نصر" class="w-10 h-10 rounded-full object-cover border-2 border-primary">
+                <div class="overflow-hidden">
+                    <h4 class="text-sm font-bold text-slate-800 truncate">أحمد نصر</h4>
+                    <p class="text-xs text-slate-500 truncate">مدير النظام</p>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="flex-1 p-3 space-y-1">
+                <button onclick="navigate('home')" id="nav-home" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition sidebar-item-active">
+                    <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+                    الرئيسية
+                </button>
+
+                <button onclick="navigate('employees')" id="nav-employees" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-primary transition">
+                    <i class="fa-solid fa-users w-5 text-center"></i>
+                    الموظفين
+                </button>
+
+                <button onclick="navigate('add-product')" id="nav-add-product" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-primary transition">
+                    <i class="fa-solid fa-plus-circle w-5 text-center"></i>
+                    إدخال قطعة هاردوير
+                </button>
+            </nav>
+
+            <!-- Logout Footer -->
+            <div class="p-3 border-t border-slate-100">
+                <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition">
+                    <i class="fa-solid fa-arrow-right-from-bracket w-5 text-center"></i>
+                    تسجيل الخروج
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT CONTAINER -->
+        <div class="flex-1 mr-64 flex flex-col min-h-screen">
+            
+            <!-- TOP NAVBAR -->
+            <header class="h-16 bg-white border-b border-slate-200 sticky top-0 z-20 flex items-center justify-between px-8 shadow-sm">
+                <div class="flex items-center gap-4">
+                    <h1 id="page-title" class="text-lg font-bold text-slate-800">الرئيسية</h1>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <!-- User badge -->
+                    <span class="text-xs font-semibold bg-blue-50 text-primary px-3 py-1.5 rounded-lg border border-blue-100 hidden sm:inline-block">
+                        <i class="fa-solid fa-user-gear ml-1"></i> أهلاً، أحمد نصر
+                    </span>
+                    <!-- Notifications -->
+                    <button class="relative w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 hover:text-primary flex items-center justify-center transition">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="absolute top-2 left-2 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                    <!-- Settings -->
+                    <button class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 hover:text-primary flex items-center justify-center transition">
+                        <i class="fa-solid fa-gear"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- CONTENT BODY -->
+            <main class="flex-1 p-8">
+
+                <!-- 1. HOME / PRODUCTS TABLE PAGE -->
+                <section id="section-home" class="space-y-6 fade-in">
+                    
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 mb-1">قطع الهاردوير بالمخزن</p>
+                                <h3 class="text-2xl font-bold text-slate-800">342</h3>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-blue-50 text-primary flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-memory"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 mb-1">فريق الصيانة والدعم</p>
+                                <h3 class="text-2xl font-bold text-slate-800">12</h3>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-users"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 mb-1">مبيعات قطع الغيار</p>
+                                <h3 class="text-2xl font-bold text-slate-800">89,400 $</h3>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-chart-line"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 mb-1">طلب قطع جديدة</p>
+                                <h3 class="text-2xl font-bold text-slate-800">18</h3>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-truck-ramp-box"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Products Table Card -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-lg">جدول قطع هاردوير اللابتوب (5)</h3>
+                                <p class="text-xs text-slate-400 mt-1">قائمة بأحدث مكونات وإكسسوارات المحمول المسجلة بالسيستم</p>
+                            </div>
+                            <button onclick="navigate('add-product')" class="bg-primary hover:bg-blue-600 text-white text-xs font-semibold px-4 py-2 rounded-xl transition flex items-center gap-2">
+                                <i class="fa-solid fa-plus"></i>
+                                إضافة قطعة جديدة
+                            </button>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right border-collapse text-sm">
+                                <thead>
+                                    <tr class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100">
+                                        <th class="p-4 pr-6">#</th>
+                                        <th class="p-4">الصورة</th>
+                                        <th class="p-4">اسم القطعة / المنتج</th>
+                                        <th class="p-4">المواصفات / السعة</th>
+                                        <th class="p-4">الفئة</th>
+                                        <th class="p-4">حالة المخزون</th>
+                                        <th class="p-4 pl-6 text-center">الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="products-table-body" class="divide-y divide-slate-100 text-slate-700">
+                                    <!-- Dynamic rows loaded via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. EMPLOYEES PAGE -->
+                <section id="section-employees" class="space-y-6 hidden fade-in">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800">فريق العمل والمهندسين</h3>
+                            <p class="text-xs text-slate-400 mt-1">إدارة طاقم الصيانة والدعم الفني والمبيعات</p>
+                        </div>
+                        <button class="bg-primary hover:bg-blue-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition flex items-center gap-2">
+                            <i class="fa-solid fa-user-plus"></i>
+                            إضافة موظف
+                        </button>
+                    </div>
+
+                    <!-- Employees Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="employees-grid">
+                        <!-- Employee Cards Loaded via JS -->
+                    </div>
+                </section>
+
+                <!-- 3. ADD NEW PRODUCT PAGE -->
+                <section id="section-add-product" class="space-y-6 hidden fade-in max-w-3xl mx-auto">
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-8">
+                        <div class="border-b border-slate-100 pb-5 mb-6">
+                            <h3 class="text-xl font-bold text-slate-800">إدخال قطعة هاردوير جديدة</h3>
+                            <p class="text-xs text-slate-400 mt-1">يرجى ملء كافة تفاصيل قطعة غيار أو ملحق اللابتوب لتسجيلها في المخزن</p>
+                        </div>
+
+                        <form onsubmit="handleAddProduct(event)" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Product Name -->
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-semibold text-slate-700">اسم القطعة <span class="text-red-500">*</span></label>
+                                    <input type="text" id="prod-name" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm" placeholder="مثال: قرص Samsung 980 Pro NVMe">
+                                </div>
+
+                                <!-- Product Weight/Spec -->
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-semibold text-slate-700">المواصفات / السعة <span class="text-red-500">*</span></label>
+                                    <input type="text" id="prod-weight" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm" placeholder="مثال: 1TB PCIe 4.0 / DDR5 16GB 4800MHz">
+                                </div>
+                            </div>
+
+                            <!-- Category -->
+                            <div class="space-y-2">
+                                <label class="block text-sm font-semibold text-slate-700">الفئة <span class="text-red-500">*</span></label>
+                                <select id="prod-category" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-white">
+                                    <option value="" disabled selected>اختر فئة القطعة</option>
+                                    <option value="وسائط تخزين (SSD/HDD)">وسائط تخزين (SSD/HDD)</option>
+                                    <option value="ذاكرة عشوائية (RAM)">ذاكرة عشوائية (RAM)</option>
+                                    <option value="بطاريات وشواحن">بطاريات وشواحن</option>
+                                    <option value="كروت شاشة ومعالجات">كروت شاشة ومعالجات</option>
+                                    <option value="شاشات ولوحات أم">شاشات ولوحات أم</option>
+                                    <option value="إكسسوارات وتبريد">إكسسوارات وتبريد</option>
+                                </select>
+                            </div>
+
+                            <!-- Photo Upload -->
+                            <div class="space-y-2">
+                                <label class="block text-sm font-semibold text-slate-700">صورة المنتج / القطعة</label>
+                                <div class="border-2 border-dashed border-slate-200 hover:border-primary rounded-2xl p-6 text-center cursor-pointer transition bg-slate-50/50 relative">
+                                    <input type="file" id="prod-photo" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewImage(event)">
+                                    <div id="upload-placeholder" class="space-y-2">
+                                        <div class="w-12 h-12 bg-blue-50 text-primary rounded-full flex items-center justify-center mx-auto text-xl">
+                                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                                        </div>
+                                        <p class="text-sm font-semibold text-slate-700">اضغط هنا لتحميل صورة القطعة أو اسحبها إلى هنا</p>
+                                        <p class="text-xs text-slate-400">PNG, JPG حتى 5 ميجابايت</p>
+                                    </div>
+                                    <div id="upload-preview" class="hidden">
+                                        <img id="preview-img" src="" alt="Preview" class="max-h-40 mx-auto rounded-xl object-cover shadow-sm">
+                                        <p class="text-xs text-slate-500 mt-2">انقر للتغيير</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                                <button type="button" onclick="navigate('home')" class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold text-sm transition">
+                                    إلغاء
+                                </button>
+                                <button type="submit" class="bg-primary hover:bg-blue-600 text-white font-semibold px-6 py-2.5 rounded-xl shadow-lg shadow-blue-500/25 text-sm transition flex items-center gap-2">
+                                    <i class="fa-solid fa-check"></i>
+                                    حفظ القطعة في النظام
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Sample Laptop Hardware Products Data (5)
+        let products = [
+            { 
+                id: 1, 
+                name: 'قرص تخزين NVMe SSD 1TB Samsung 980 Pro', 
+                weight: '1TB PCIe 4.0 / 7000 MB/s', 
+                category: 'وسائط تخزين (SSD/HDD)', 
+                photo: 'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=150&auto=format&fit=crop&q=80', 
+                status: 'متوفر' 
+            },
+            { 
+                id: 2, 
+                name: 'رام لابتوب Corsair Vengeance 16GB DDR5', 
+                weight: '16GB (1x16GB) 4800MHz SODIMM', 
+                category: 'ذاكرة عشوائية (RAM)', 
+                photo: 'https://images.unsplash.com/photo-1562976540-1502c2145186?w=150&auto=format&fit=crop&q=80', 
+                status: 'متوفر' 
+            },
+            { 
+                id: 3, 
+                name: 'بطارية لابتوب Dell XPS 15 الأصلية', 
+                weight: '86Wh 6-Cell Li-ion', 
+                category: 'بطاريات وشواحن', 
+                photo: 'https://images.unsplash.com/photo-1619725002198-6a689b72f41d?w=150&auto=format&fit=crop&q=80', 
+                status: 'منخفض' 
+            },
+            { 
+                id: 4, 
+                name: 'شاحن لابتوب سريع GaN Type-C 100W', 
+                weight: '100W Multi-Port Fast Charger', 
+                category: 'بطاريات وشواحن', 
+                photo: 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=150&auto=format&fit=crop&q=80', 
+                status: 'متوفر' 
+            },
+            { 
+                id: 5, 
+                name: 'قاعدة تبريد لابتوب قيمنق مزودة بمراوح RGB', 
+                weight: '5 مراوح / شاشة تحكم بالسرعة', 
+                category: 'إكسسوارات وتبريد', 
+                photo: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=150&auto=format&fit=crop&q=80', 
+                status: 'متوفر' 
+            },
+        ];
+
+        // Sample Employees Data (Updated with Admin Ahmed Nasr)
+        const employees = [
+            { name: 'أحمد نصر', role: 'مدير النظام والمهندس المسؤول', email: 'ahmed.nasr@dashmin.com', phone: '+20 100 111 2233', photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80' },
+            { name: 'محمود السيد', role: 'مهندس صيانة هاردوير', email: 'mahmoud@dashmin.com', phone: '+20 101 234 5678', photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80' },
+            { name: 'مريم علي', role: 'مسؤولة مبيعات وقطع غيار', email: 'maryam@dashmin.com', phone: '+20 102 345 6789', photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80' },
+            { name: 'عمر خالد', role: 'أمين مخزن القطع الإلكترونية', email: 'omar@dashmin.com', phone: '+20 103 456 7890', photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80' }
+        ];
+
+        // Handle Login
+        function handleLogin(e) {
+            e.preventDefault();
+            document.getElementById('login-view').classList.add('hidden');
+            document.getElementById('app-view').classList.remove('hidden');
+            renderProducts();
+            renderEmployees();
+        }
+
+        // Handle Logout
+        function logout() {
+            document.getElementById('app-view').classList.add('hidden');
+            document.getElementById('login-view').classList.remove('hidden');
+        }
+
+        // Navigation Handler
+        function navigate(page) {
+            // Title mapping
+            const titles = {
+                'home': 'الرئيسية - قطع هاردوير اللابتوب',
+                'employees': 'الموظفين ومهندسي الصيانة',
+                'add-product': 'إدخال قطعة هاردوير جديدة'
+            };
+
+            document.getElementById('page-title').innerText = titles[page];
+
+            // Hide all sections
+            ['home', 'employees', 'add-product'].forEach(sec => {
+                document.getElementById(`section-${sec}`).classList.add('hidden');
+                document.getElementById(`nav-${sec}`).className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-primary transition";
+            });
+
+            // Show selected section
+            document.getElementById(`section-${page}`).classList.remove('hidden');
+            document.getElementById(`nav-${page}`).className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition sidebar-item-active";
+        }
+
+        // Render Products Table
+        function renderProducts() {
+            const tbody = document.getElementById('products-table-body');
+            tbody.innerHTML = products.map((p, index) => `
+                <tr class="hover:bg-slate-50/80 transition">
+                    <td class="p-4 pr-6 font-semibold text-slate-400">${index + 1}</td>
+                    <td class="p-4">
+                        <img src="${p.photo}" alt="${p.name}" class="w-12 h-12 rounded-xl object-cover border border-slate-200">
+                    </td>
+                    <td class="p-4 font-bold text-slate-800">${p.name}</td>
+                    <td class="p-4 text-xs font-mono bg-slate-50 px-2 py-1 rounded border border-slate-100 text-slate-600 w-fit">${p.weight}</td>
+                    <td class="p-4">
+                        <span class="bg-blue-50 text-primary px-3 py-1 rounded-lg text-xs font-semibold">${p.category}</span>
+                    </td>
+                    <td class="p-4">
+                        <span class="${p.status === 'متوفر' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'} px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 w-fit">
+                            <span class="w-1.5 h-1.5 ${p.status === 'متوفر' ? 'bg-emerald-500' : 'bg-amber-500'} rounded-full"></span>
+                            ${p.status}
+                        </span>
+                    </td>
+                    <td class="p-4 pl-6 text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <button class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-primary flex items-center justify-center text-xs transition" title="تعديل">
+                                <i class="fa-regular fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="deleteProduct(${p.id})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-500 flex items-center justify-center text-xs transition" title="حذف">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Render Employees Grid
+        function renderEmployees() {
+            const grid = document.getElementById('employees-grid');
+            grid.innerHTML = employees.map(emp => `
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm flex flex-col items-center text-center space-y-4 hover:shadow-md transition">
+                    <img src="${emp.photo}" alt="${emp.name}" class="w-20 h-20 rounded-full object-cover border-4 border-slate-100 shadow">
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-lg">${emp.name}</h4>
+                        <p class="text-xs font-semibold text-primary mt-0.5">${emp.role}</p>
+                    </div>
+                    <div class="w-full pt-4 border-t border-slate-100 space-y-2 text-xs text-slate-500">
+                        <div class="flex items-center justify-center gap-2">
+                            <i class="fa-regular fa-envelope text-slate-400"></i>
+                            <span>${emp.email}</span>
+                        </div>
+                        <div class="flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-phone text-slate-400"></i>
+                            <span>${emp.phone}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Preview Image Upload
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('preview-img').src = e.target.result;
+                    document.getElementById('upload-placeholder').classList.add('hidden');
+                    document.getElementById('upload-preview').classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Handle Add New Product
+        function handleAddProduct(e) {
+            e.preventDefault();
+            const name = document.getElementById('prod-name').value;
+            const weight = document.getElementById('prod-weight').value;
+            const category = document.getElementById('prod-category').value;
+            const previewImgSrc = document.getElementById('preview-img').src;
+
+            const newProduct = {
+                id: products.length + 1,
+                name: name,
+                weight: weight,
+                category: category,
+                photo: previewImgSrc || 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=150&auto=format&fit=crop&q=80',
+                status: 'متوفر'
+            };
+
+            products.unshift(newProduct);
+            renderProducts();
+            
+            // Reset form
+            e.target.reset();
+            document.getElementById('upload-placeholder').classList.remove('hidden');
+            document.getElementById('upload-preview').classList.add('hidden');
+
+            // Navigate back to Home
+            navigate('home');
+        }
+
+        // Delete Product
+        function deleteProduct(id) {
+            if(confirm('هل أنت تأكد من حذف هذه القطعة من المخزن؟')) {
+                products = products.filter(p => p.id !== id);
+                renderProducts();
+            }
+        }
+    </script>
+</body>
+</html>
